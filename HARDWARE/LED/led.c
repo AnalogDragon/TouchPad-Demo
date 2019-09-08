@@ -39,14 +39,19 @@ void LED_DAT(u32 num){
 void LedTask(void){
 	u8 i;
 	static u8 Step = 0;
+	static u16 TimeBuf = 0;
 	u32 temp = 0,temp0 = 0;
 	if(DispData.EN){
 		if(DispData.All){
 			temp = 0xFFFFFFFF;
 			Step = 14;
+			TimeBuf = SysTime.SysTimeCNT10ms;
 		}
 		else if(Step){
-			Step --;
+			if(TimeBuf != SysTime.SysTimeCNT10ms){
+				TimeBuf = SysTime.SysTimeCNT10ms;
+				Step --;
+			}
 			temp0 = temp = 0x80000000>>(DispData.Pos%32);	//ÖÐÐÄµã
 			for(i=0;i<Step;i++){
 				temp0 |= (temp>>i) | (temp<<(31-i));
@@ -71,7 +76,6 @@ void DispPos(u8 num){
 	u32 temp;
 	temp = 0x80000000>>(num%32);
 	LED_DAT(temp);
-	
 }
 
 

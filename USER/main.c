@@ -2,7 +2,7 @@
 
 
 void init_all(void){
-	delay_init();	  //延时函数初始化	  
+	delay_init();
  	TIM4_Int_Init(1000-1,64-1);	//1000sps /1ms
 	InitTim2Cap(0xFFFF,4-1);
 	InitTim3Cap(0xFFFF,4-1);
@@ -11,9 +11,10 @@ void init_all(void){
 }
 
 
+
 int main(void){
-	init_all();      //初始化系统
-	GPIOA->CRL &= 0xFF0FFFFF;
+	init_all();
+	GPIOA->CRL &= 0xFF0FFFFF;	//Set Debug Output Pin
 	GPIOA->CRL |= 0x00300000;
 	PAout(5)=1;
 	GetTouchRef();
@@ -24,15 +25,19 @@ int main(void){
 		if(SysTime.SysTimeFLG1ms){
 			PAout(5)=1;
 			GetVal2();
+			if(TouchValue.KeySet){
+				TouchValue.KeySet = 0;
+				GetTouch();
+			}
+			TouchToDisp();
+			LedTask();
 			PAout(5)=0;
 			SysTime.SysTimeFLG1ms = 0;
 		}
 		
-		if(SysTime.SysTimeFLG10ms){	
-			GetTouch();
-			TouchToDisp();
-			LedTask();
-			printtime();
+		if(SysTime.SysTimeFLG10ms){
+// 			AutoSetRef();
+			send_once();
 			SysTime.SysTimeFLG10ms = 0;
 		}
 		

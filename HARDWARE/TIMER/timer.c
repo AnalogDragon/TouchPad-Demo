@@ -1,7 +1,7 @@
 #include "timer.h"
-			
-			
 
+
+#if 0
 //arr：自动重装值。
 //psc：时钟预分频数
 void TIM3_Int_Init(u16 arr,u16 psc)
@@ -80,7 +80,7 @@ void TIM3_PWM_Init(u16 arr,u16 psc)
 	TIM3->CCR1=50;
 
 }
-
+#endif
 
 void TIM4_Int_Init(u16 arr,u16 psc)
 {
@@ -210,7 +210,7 @@ void InitTim3Cap(u16 arr,u16 psc){
 #define FilterLength 10
 
 
-void GetVal(void){
+void GetVal(void){//0.5ms
 	static u8 Timer = 0;
 	static u32 CenterBuf;
 	static u32 RightBuf;
@@ -311,9 +311,10 @@ L5:
 //Down	Tim3Ch2	PA7
 //Up		Tim3Ch3	PB0
 //Left	Tim3Ch4	PB1
-void GetVal2(void){//0.15ms max
+//每调用10次，更新一次值
+void GetVal2(void){//0.15ms Max 
 	static u8 Timer = 0;
-	static u32 CenterBuf;
+	static u16 CenterBuf;
 	static u16 RightBuf;
 	static u16 DownBuf;
 	static u16 LeftBuf;
@@ -349,7 +350,7 @@ void GetVal2(void){//0.15ms max
 			LeftBuf += TIM3->CCR4;
 			temp &= 0xEF;
 		}
-		if(temp == 0 || TIM2->CNT > SetMaxCount){
+		if(temp == 0 || TIM2->CNT > SetMaxCount){	//超时判断
 			if(temp&0x01)CenterBuf += SetMaxCount;
 			if(temp&0x02)RightBuf += SetMaxCount;
 			if(temp&0x04)DownBuf += SetMaxCount;
@@ -364,44 +365,148 @@ void GetVal2(void){//0.15ms max
 	GPIOB->CRL |= 0x00000033;	//Output PP
 	
 	Timer++;
-	if(Timer >= FilterLength){
-		TouchValue.Center = CenterBuf/FilterLength + 4.5;	//GPIO初始化补偿时间 = 4
-		TouchValue.Right = RightBuf/FilterLength + 4.5;
-		TouchValue.Down = DownBuf/FilterLength + 4.5;
-		TouchValue.Left = LeftBuf/FilterLength + 0.5;
-		TouchValue.Up = UpBuf/FilterLength + 0.5;
-		CenterBuf=RightBuf=DownBuf=LeftBuf=UpBuf=Timer = 0;
-	}
+	if(Timer >= FilterLength){	//GPIO模式切换，补偿时间 = 4
+		TouchValue.Center = (float)CenterBuf/FilterLength + 4.5;
+		TouchValue.Right = (float)RightBuf/FilterLength + 4.5;
+		TouchValue.Down = (float)DownBuf/FilterLength + 4.5;
+		TouchValue.Left = (float)LeftBuf/FilterLength + 0.5;
+		TouchValue.Up = (float)UpBuf/FilterLength + 0.5;
+ 		CenterBuf=RightBuf=DownBuf=LeftBuf=UpBuf=Timer = 0;
+		TouchValue.KeySet = 1;
+	}//23.1us
 	
 }       
 
 
-#define InitFiltLen 32
-void GetTouchRef(void){
+#define InitFiltLen 2
+#define KeepTime 32	//KeepTime * 10ms
+
+void GetTouchRef(void){	// = InitFiltLen * 12.64ms = 63ms
 	u8 i,j;
-	u32 a,b,c,d,e;
-	a=b=c=d=e=0;
-	for(i=0;i<InitFiltLen;i++){
-		for(j=0;j<FilterLength;j++){
-			delay_ms(1);
-			GetVal2();
+	u16 a,b,c,d,e,Time;	//InitFiltLen over 32,need u32
+	Time = 0;
+	while(1){
+		a=b=c=d=e=0;
+		for(i=0;i<InitFiltLen;i++){
+			for(j=0;j<FilterLength;j++){	//获取一次的值
+				delay_ms(1);
+				GetVal2();
+			}
+			a += TouchValue.Center;
+			b += TouchValue.Right;
+			c += TouchValue.Left;
+			d += TouchValue.Up;
+			e += TouchValue.Down;
 		}
-		a += TouchValue.Center;
-		b += TouchValue.Right;
-		c += TouchValue.Down;
-		d += TouchValue.Left;
-		e += TouchValue.Up;
-		DispPos(i);
+		a = (float)a/InitFiltLen+0.5;
+		b = (float)b/InitFiltLen+0.5;
+		c = (float)c/InitFiltLen+0.5;
+		d = (float)d/InitFiltLen+0.5;
+		e = (float)e/InitFiltLen+0.5;
+		if(((a+1)>=(TouchValue.Center) && (a)<=(TouchValue.Center+1))
+		 &&((b+1)>=(TouchValue.Right) && (b)<=(TouchValue.Right+1))
+		 &&((c+1)>=(TouchValue.Left) && (c)<=(TouchValue.Left+1))
+		 &&((d+1)>=(TouchValue.Up) && (d)<=(TouchValue.Up+1))
+		 &&((e+1)>=(TouchValue.Down) && (e)<=(TouchValue.Down+1))
+		)Time++;	//值与上次的值误差+-1以内
+		else{
+			Time = 0;
+			a = TouchValue.Center;
+			b = TouchValue.Right;
+			c = TouchValue.Left;
+			d = TouchValue.Up;
+			e = TouchValue.Down;
+		}
+		if(Time>=KeepTime)break;
+		DispPos(Time);
 	}
-	TouchValue.CenterRef = a/InitFiltLen+0.5;
-	TouchValue.RightRef = b/InitFiltLen+0.5;
-	TouchValue.DownRef = c/InitFiltLen+0.5;
-	TouchValue.LeftRef = d/InitFiltLen+0.5;
-	TouchValue.UpRef = e/InitFiltLen+0.5;
+	TouchValue.CenterRef = a;
+	TouchValue.RightRef = b;
+	TouchValue.LeftRef = c;
+	TouchValue.UpRef = d;
+	TouchValue.DownRef = e;
 }
 
 
+void AutoSetRef(void){
+	static u16 CenterBuf,RightBuf,DownBuf,LeftBuf,UpBuf;
+	static u16 Time1=0,Time2=0,Time3=0,Time4=0,Time5=0;
+	
+	if((CenterBuf+1)>=(TouchValue.Center) && (CenterBuf)<=(TouchValue.Center+1)){	//值与上次的值误差+-1以内
+		if((CenterBuf+3)<(TouchValue.CenterRef) || (CenterBuf)>(TouchValue.CenterRef+3))	//值与校准值误差大于+-3
+			Time1++;	//计数
+		if(Time1 >= KeepTime){
+			Time1 = 0;
+			TouchValue.CenterRef = CenterBuf;
+			GetTouchRef();
+		}
+	}
+	else{
+		Time1 = 0;
+		CenterBuf = TouchValue.Center;
+	}
+	
 
+	if((UpBuf+1)>=(TouchValue.Center) && (UpBuf)<=(TouchValue.Up+1)){	//值与上次的值误差+-1以内
+		if((UpBuf+3)<(TouchValue.UpRef) || (UpBuf)>(TouchValue.UpRef+3))	//值与校准值误差大于+-3
+			Time2++;	//计数
+		if(Time2 >= KeepTime){
+			Time2 = 0;
+			TouchValue.UpRef = UpBuf;
+			GetTouchRef();
+		}
+	}
+	else{
+		Time2 = 0;
+		UpBuf = TouchValue.Up;
+	}
+	
+
+	if((DownBuf+1)>=(TouchValue.Down) && (DownBuf)<=(TouchValue.Down+1)){	//值与上次的值误差+-1以内
+		if((DownBuf+3)<(TouchValue.DownRef) || (DownBuf)>(TouchValue.DownRef+3))	//值与校准值误差大于+-3
+			Time3++;	//计数
+		if(Time3 >= KeepTime){
+			Time3 = 0;
+			TouchValue.DownRef = DownBuf;
+			GetTouchRef();
+		}
+	}
+	else{
+		Time3 = 0;
+		DownBuf = TouchValue.Down;
+	}
+	
+
+	if((RightBuf+1)>=(TouchValue.Right) && (RightBuf)<=(TouchValue.Right+1)){	//值与上次的值误差+-1以内
+		if((RightBuf+3)<(TouchValue.RightRef) || (RightBuf)>(TouchValue.RightRef+3))	//值与校准值误差大于+-3
+			Time4++;	//计数
+		if(Time4 >= KeepTime){
+			Time4 = 0;
+			TouchValue.RightRef = RightBuf;
+			GetTouchRef();
+		}
+	}
+	else{
+		Time4 = 0;
+		RightBuf = TouchValue.Right;
+	}
+	
+
+	if((LeftBuf+1)>=(TouchValue.Left) && (LeftBuf)<=(TouchValue.Left+1)){	//值与上次的值误差+-1以内
+		if((LeftBuf+3)<(TouchValue.LeftRef) || (LeftBuf)>(TouchValue.LeftRef+3))	//值与校准值误差大于+-3
+			Time5++;	//计数
+		if(Time5 >= KeepTime){
+			Time5 = 0;
+			TouchValue.LeftRef = LeftBuf;
+			GetTouchRef();
+		}
+	}
+	else{
+		Time5 = 0;
+		LeftBuf = TouchValue.Left;
+	}
+	
+}
 
 
 

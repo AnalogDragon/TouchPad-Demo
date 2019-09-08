@@ -5,6 +5,13 @@
 
 ![image](https://github.com/AnalogDragon/TouchPad-Demo/blob/master/image/PIC1.jpg)
 
-PCB工程位于TouchPad-PCB文件夹下;
-触摸按键的铺铜与丝印位于TouchPad-BMP文件夹下;
+[视频演示 Video](https://www.bilibili.com/video/av66430694/ "【DEMO展示】电容式触摸的DEMO测试")
+
+
+
+**注:**
+
+PCB工程位于TouchPad-PCB文件夹;
+
+触摸按键的铺铜与丝印位图位于TouchPad-BMP文件夹;
 

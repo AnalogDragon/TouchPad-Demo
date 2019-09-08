@@ -48,6 +48,8 @@ struct TouchValue_REG{
 	u8 CycKey;
 	u8 AllKey;
 	
+	u8 KeySet;
+	
 	float Deg;
 };
 

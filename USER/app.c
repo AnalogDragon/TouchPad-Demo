@@ -3,8 +3,8 @@
 
 
 
-#define Gate0 40
-#define Gate1 80
+#define Gate0 40	//单个按键阈值Single Key Gate Value
+#define Gate1 50
 
 void GetTouch(void){
 	u16 up,dn,lt,rt;
@@ -19,7 +19,7 @@ void GetTouch(void){
 	TouchValue.CycKey = ((TouchValue.UpRef + TouchValue.LeftRef + TouchValue.RightRef + TouchValue.DownRef + Gate1)
 											<(TouchValue.Right + TouchValue.Down + TouchValue.Left + TouchValue.Up));
 	
-	TouchValue.AllKey = ((TouchValue.CenterRef + TouchValue.UpRef + TouchValue.LeftRef + TouchValue.RightRef + TouchValue.DownRef + Gate0)
+	TouchValue.AllKey = ((TouchValue.CenterRef + TouchValue.UpRef + TouchValue.LeftRef + TouchValue.RightRef + TouchValue.DownRef + Gate1)
 											<(TouchValue.Center + TouchValue.Right + TouchValue.Down + TouchValue.Left + TouchValue.Up));
 	
 	up=dn=lt=rt=0;
@@ -28,7 +28,7 @@ void GetTouch(void){
 	if(TouchValue.LeftRef < TouchValue.Left)		lt = TouchValue.Left - TouchValue.LeftRef;
 	if(TouchValue.UpRef < TouchValue.Up)				up = TouchValue.Up - TouchValue.UpRef;
 	
-	if(up>=dn)
+	if(up>=dn)		//Get Quadrant
 		if(rt>=lt) temp = 1;
 		else temp = 4;
 	else 
@@ -55,6 +55,7 @@ void GetTouch(void){
 
 void TouchToDisp(void){
 	static u8 PressCyc = 0;
+	u8 temp;
 	if(PressCyc == 0){
 		DispData.All = TouchValue.CenterKey;
 		if(TouchValue.CycKey)
@@ -66,7 +67,26 @@ void TouchToDisp(void){
 			PressCyc = 0;
 	}
 	DispData.EN = TouchValue.AllKey;
-	DispData.Pos = TouchValue.Deg*32/360;
+	
+	temp = TouchValue.Deg*32/360;
+	if(DispData.Pos != temp){
+		if(temp > DispData.Pos){
+			if(temp - DispData.Pos <= 16)
+				DispData.Pos++;
+			else{
+				if(DispData.Pos)DispData.Pos--;
+				else DispData.Pos = 31;
+			}
+		}
+		else if(temp < DispData.Pos){
+			if(DispData.Pos - temp <= 16)
+				DispData.Pos--;
+			else{
+				if(DispData.Pos<31)DispData.Pos++;
+				else DispData.Pos = 0;
+			}
+		}
+	}
 }
 
 
