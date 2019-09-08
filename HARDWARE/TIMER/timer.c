@@ -206,121 +206,185 @@ void InitTim3Cap(u16 arr,u16 psc){
 }
 
 
-void GetVal(void){//1ms
+#define SetMaxCount 2000
+#define FilterLength 10
+
+
+void GetVal(void){
 	static u8 Timer = 0;
-	static u16 CenterBuf[5];
-	static u16 RightBuf[5];
-	static u16 DownBuf[5];
-	static u16 LeftBuf[5];
-	static u16 UpBuf[5];
-	
+	static u32 CenterBuf;
+	static u32 RightBuf;
+	static u32 DownBuf;
+	static u32 LeftBuf;
+	static u32 UpBuf;
+
 	/*Center*/
 	TIM2->CNT = 0;
-	TIM_ClearITPendingBit(TIM2, TIM_IT_CC4|TIM_IT_Update);
+	TIM_ClearFlag(TIM2, TIM_FLAG_CC4|TIM_FLAG_Update);
 	GPIOA->CRL &= 0xFFFF0FFF;
 	GPIOA->CRL |= 0x00004000;	//FLoting
-	delay_us(80);
-	while(TIM_GetITStatus(TIM2, TIM_IT_CC4) != RESET){
-		if(TIM2->CNT > 0xF000){
-			CenterBuf[Timer] = TIM2->CNT;
+	while(TIM_GetFlagStatus(TIM2, TIM_FLAG_CC4) == RESET){
+		if(TIM2->CNT > SetMaxCount){
+			CenterBuf += SetMaxCount;
 			goto L1;
 		}
 	}
-	CenterBuf[Timer] = TIM2->CCR4;
+	CenterBuf += TIM2->CCR4;
 L1:
-	GPIOA->CRL &= 0xFFFF0FFF;
-	GPIOA->CRL |= 0x00003000;	//Output PP
 	
 	/*Right	Tim3Ch1	PA6*/
 	TIM3->CNT = 0;
-	TIM_ClearITPendingBit(TIM3, TIM_IT_CC1|TIM_IT_Update);
+	TIM_ClearFlag(TIM3, TIM_FLAG_CC1|TIM_FLAG_Update);
 	GPIOA->CRL &= 0xF0FFFFFF;
 	GPIOA->CRL |= 0x04000000;	//FLoting
-	delay_us(80);
-	while(TIM_GetITStatus(TIM3, TIM_IT_CC1) != RESET){
-		if(TIM3->CNT > 0xF000){
-			RightBuf[Timer] = TIM3->CNT;
+	while(TIM_GetFlagStatus(TIM3, TIM_FLAG_CC1) == RESET){
+		if(TIM3->CNT > SetMaxCount){
+			RightBuf += SetMaxCount;
 			goto L2;
 		}
 	}
-	RightBuf[Timer] = TIM3->CCR1;
+	RightBuf += TIM3->CCR1;
 L2:
-	GPIOA->CRL &= 0xF0FFFFFF;
-	GPIOA->CRL |= 0x03000000;	//Output PP
 	
 	/*Down	Tim3Ch2	PA7*/
 	TIM3->CNT = 0;
-	TIM_ClearITPendingBit(TIM3, TIM_IT_CC2|TIM_IT_Update);
+	TIM_ClearFlag(TIM3, TIM_FLAG_CC2|TIM_FLAG_Update);
 	GPIOA->CRL &= 0x0FFFFFFF;
 	GPIOA->CRL |= 0x40000000;	//FLoting
-	delay_us(80);
-	while(TIM_GetITStatus(TIM3, TIM_IT_CC2) != RESET){
-		if(TIM3->CNT > 0xF000){
-			DownBuf[Timer] = TIM3->CNT;
+	while(TIM_GetFlagStatus(TIM3, TIM_FLAG_CC2) == RESET){
+		if(TIM3->CNT > SetMaxCount){
+			DownBuf += SetMaxCount;
 			goto L3;
 		}
 	}
-	DownBuf[Timer] = TIM3->CCR2;
+	DownBuf += TIM3->CCR2;
 L3:
-	GPIOA->CRL &= 0x0FFFFFFF;
-	GPIOA->CRL |= 0x30000000;	//Output PP
 	
 	/*Up Tim3Ch3	PB0*/
 	TIM3->CNT = 0;
-	TIM_ClearITPendingBit(TIM3, TIM_IT_CC3|TIM_IT_Update);
+	TIM_ClearFlag(TIM3, TIM_FLAG_CC3|TIM_FLAG_Update);
 	GPIOB->CRL &= 0xFFFFFFF0;
 	GPIOB->CRL |= 0x00000004;	//FLoting
-	delay_us(80);
-	while(TIM_GetITStatus(TIM3, TIM_IT_CC3) != RESET){
-		if(TIM3->CNT > 0xF000){
-			UpBuf[Timer] = TIM3->CNT;
+	while(TIM_GetFlagStatus(TIM3, TIM_FLAG_CC3) == RESET){
+		if(TIM3->CNT > SetMaxCount){
+			UpBuf += SetMaxCount;
 			goto L4;
 		}
 	}
-	UpBuf[Timer] = TIM3->CCR3;
+	UpBuf += TIM3->CCR3;
 L4:
-	GPIOB->CRL &= 0xFFFFFFF0;
-	GPIOB->CRL |= 0x00000003;	//Output PP
 	
 	/*Left	Tim3Ch4	PB1*/
 	TIM3->CNT = 0;
-	TIM_ClearITPendingBit(TIM3, TIM_IT_CC4|TIM_IT_Update);
+	TIM_ClearFlag(TIM3, TIM_FLAG_CC4|TIM_FLAG_Update);
 	GPIOB->CRL &= 0xFFFFFF0F;
 	GPIOB->CRL |= 0x00000040;	//FLoting
-	delay_us(80);
-	while(TIM_GetITStatus(TIM3, TIM_IT_CC4) != RESET){
-		if(TIM3->CNT > 0xF000){
-			LeftBuf[Timer] = TIM3->CNT;
+	while(TIM_GetFlagStatus(TIM3, TIM_FLAG_CC4) == RESET){
+		if(TIM3->CNT > SetMaxCount){
+			LeftBuf += SetMaxCount;
 			goto L5;
 		}
 	}
-	LeftBuf[Timer] = TIM3->CCR4;
+	LeftBuf += TIM3->CCR4;
 L5:
-	GPIOB->CRL &= 0xFFFFFF0F;
-	GPIOB->CRL |= 0x00000030;	//Output PP
+	
+	GPIOA->CRL &= 0x00FF0FFF;
+	GPIOA->CRL |= 0x33003000;
+	GPIOB->CRL &= 0xFFFFFF00;
+	GPIOB->CRL |= 0x00000033;	//Output PP
 	
 	Timer++;
-	if(Timer >= 5){
-		TouchValue.Center = ((CenterBuf[0]+CenterBuf[1]+CenterBuf[2]+CenterBuf[3]+CenterBuf[4])/5) + 0.5;
-		TouchValue.Right = ((RightBuf[0]+RightBuf[1]+RightBuf[2]+RightBuf[3]+RightBuf[4])/5) + 0.5;
-		TouchValue.Down = ((DownBuf[0]+DownBuf[1]+DownBuf[2]+DownBuf[3]+DownBuf[4])/5) + 0.5;
-		TouchValue.Left = ((LeftBuf[0]+LeftBuf[1]+LeftBuf[2]+LeftBuf[3]+LeftBuf[4])/5) + 0.5;
-		TouchValue.Up = ((UpBuf[0]+UpBuf[1]+UpBuf[2]+UpBuf[3]+UpBuf[4])/5) + 0.5;
-		Timer = 0;
+	if(Timer >= FilterLength){
+		TouchValue.Center = CenterBuf/FilterLength + 0.5;
+		TouchValue.Right = RightBuf/FilterLength + 0.5;
+		TouchValue.Down = DownBuf/FilterLength + 0.5;
+		TouchValue.Left = LeftBuf/FilterLength + 0.5;
+		TouchValue.Up = UpBuf/FilterLength + 0.5;
+		CenterBuf=RightBuf=DownBuf=LeftBuf=UpBuf=Timer = 0;
 	}
 	
 }       
 
 
+//Center Tim2Ch4 PA3
+//Right	Tim3Ch1	PA6
+//Down	Tim3Ch2	PA7
+//Up		Tim3Ch3	PB0
+//Left	Tim3Ch4	PB1
+void GetVal2(void){//0.15ms max
+	static u8 Timer = 0;
+	static u32 CenterBuf;
+	static u16 RightBuf;
+	static u16 DownBuf;
+	static u16 LeftBuf;
+	static u16 UpBuf;
+	u8 temp = 0x1F;
 
+	/*Center*/
+	TIM_ClearFlag(TIM2, TIM_FLAG_CC4|TIM_FLAG_Update);
+	TIM_ClearFlag(TIM3, TIM_FLAG_CC1|TIM_FLAG_CC2|TIM_FLAG_CC3|TIM_FLAG_CC4|TIM_FLAG_Update);
+	TIM2->CNT = TIM3->CNT = 0;
+	GPIOA->CRL &= 0x00FF0FFF;
+	GPIOB->CRL &= 0xFFFFFF00;
+	GPIOA->CRL |= 0x44004000;
+	GPIOB->CRL |= 0x00000044;	//Output PP	//FLoting
+	while(1){
+		if((temp&0x01) && TIM_GetFlagStatus(TIM2, TIM_FLAG_CC4) != RESET){//Center
+			CenterBuf += TIM2->CCR4;
+			temp &= 0xFE;
+		}
+		if((temp&0x02) && TIM_GetFlagStatus(TIM3, TIM_FLAG_CC1) != RESET){//Right
+			RightBuf += TIM3->CCR1;
+			temp &= 0xFD;
+		}
+		if((temp&0x04) && TIM_GetFlagStatus(TIM3, TIM_FLAG_CC2) != RESET){//Down
+			DownBuf += TIM3->CCR2;
+			temp &= 0xFB;
+		}
+		if((temp&0x08) && TIM_GetFlagStatus(TIM3, TIM_FLAG_CC3) != RESET){//Up
+			UpBuf += TIM3->CCR3;
+			temp &= 0xF7;
+		}
+		if((temp&0x10) && TIM_GetFlagStatus(TIM3, TIM_FLAG_CC4) != RESET){//Left
+			LeftBuf += TIM3->CCR4;
+			temp &= 0xEF;
+		}
+		if(temp == 0 || TIM2->CNT > SetMaxCount){
+			if(temp&0x01)CenterBuf += SetMaxCount;
+			if(temp&0x02)RightBuf += SetMaxCount;
+			if(temp&0x04)DownBuf += SetMaxCount;
+			if(temp&0x08)UpBuf += SetMaxCount;
+			if(temp&0x10)LeftBuf += SetMaxCount;
+			break;
+		}
+	}
+	GPIOA->CRL &= 0x00FF0FFF;
+	GPIOA->CRL |= 0x33003000;
+	GPIOB->CRL &= 0xFFFFFF00;
+	GPIOB->CRL |= 0x00000033;	//Output PP
+	
+	Timer++;
+	if(Timer >= FilterLength){
+		TouchValue.Center = CenterBuf/FilterLength + 4.5;	//GPIO初始化补偿时间 = 4
+		TouchValue.Right = RightBuf/FilterLength + 4.5;
+		TouchValue.Down = DownBuf/FilterLength + 4.5;
+		TouchValue.Left = LeftBuf/FilterLength + 0.5;
+		TouchValue.Up = UpBuf/FilterLength + 0.5;
+		CenterBuf=RightBuf=DownBuf=LeftBuf=UpBuf=Timer = 0;
+	}
+	
+}       
+
+
+#define InitFiltLen 32
 void GetTouchRef(void){
 	u8 i,j;
 	u32 a,b,c,d,e;
 	a=b=c=d=e=0;
-	for(i=0;i<50;i++){
-		for(j=0;j<5;j++){
+	for(i=0;i<InitFiltLen;i++){
+		for(j=0;j<FilterLength;j++){
 			delay_ms(1);
-			GetVal();
+			GetVal2();
 		}
 		a += TouchValue.Center;
 		b += TouchValue.Right;
@@ -329,11 +393,11 @@ void GetTouchRef(void){
 		e += TouchValue.Up;
 		DispPos(i);
 	}
-	TouchValue.CenterRef = a/50+0.5;
-	TouchValue.RightRef = b/50+0.5;
-	TouchValue.DownRef = c/50+0.5;
-	TouchValue.LeftRef = d/50+0.5;
-	TouchValue.UpRef = e/50+0.5;
+	TouchValue.CenterRef = a/InitFiltLen+0.5;
+	TouchValue.RightRef = b/InitFiltLen+0.5;
+	TouchValue.DownRef = c/InitFiltLen+0.5;
+	TouchValue.LeftRef = d/InitFiltLen+0.5;
+	TouchValue.UpRef = e/InitFiltLen+0.5;
 }
 
 

@@ -58,6 +58,8 @@ void LedTask(void){
 			temp = 0x80000000>>(DispData.Pos%32);
 		}
 	}
+	else
+		Step = 0;
 	
 	LED_DAT(temp);
 	

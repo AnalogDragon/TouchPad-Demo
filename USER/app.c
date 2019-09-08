@@ -3,22 +3,23 @@
 
 
 
-#define Gate 8
+#define Gate0 40
+#define Gate1 80
 
 void GetTouch(void){
 	u16 up,dn,lt,rt;
 	u8 temp;
 	float temp0,temp1;
-	TouchValue.CenterKey = ((TouchValue.CenterRef + Gate) < TouchValue.Center);
-	TouchValue.RightKey = ((TouchValue.RightRef + Gate) < TouchValue.Right);
-	TouchValue.DownKey = ((TouchValue.DownRef + Gate) < TouchValue.Down);
-	TouchValue.LeftKey = ((TouchValue.LeftRef + Gate) < TouchValue.Left);
-	TouchValue.UpKey = ((TouchValue.UpRef + Gate) < TouchValue.Up);
+	TouchValue.CenterKey = ((TouchValue.CenterRef + Gate0) < TouchValue.Center);
+	TouchValue.RightKey = ((TouchValue.RightRef + Gate0) < TouchValue.Right);
+	TouchValue.DownKey = ((TouchValue.DownRef + Gate0) < TouchValue.Down);
+	TouchValue.LeftKey = ((TouchValue.LeftRef + Gate0) < TouchValue.Left);
+	TouchValue.UpKey = ((TouchValue.UpRef + Gate0) < TouchValue.Up);
 	
-	TouchValue.CycKey = ((TouchValue.UpRef + TouchValue.LeftRef + TouchValue.RightRef + TouchValue.DownRef + Gate)
+	TouchValue.CycKey = ((TouchValue.UpRef + TouchValue.LeftRef + TouchValue.RightRef + TouchValue.DownRef + Gate1)
 											<(TouchValue.Right + TouchValue.Down + TouchValue.Left + TouchValue.Up));
 	
-	TouchValue.AllKey = ((TouchValue.CenterRef + TouchValue.UpRef + TouchValue.LeftRef + TouchValue.RightRef + TouchValue.DownRef + Gate)
+	TouchValue.AllKey = ((TouchValue.CenterRef + TouchValue.UpRef + TouchValue.LeftRef + TouchValue.RightRef + TouchValue.DownRef + Gate0)
 											<(TouchValue.Center + TouchValue.Right + TouchValue.Down + TouchValue.Left + TouchValue.Up));
 	
 	up=dn=lt=rt=0;

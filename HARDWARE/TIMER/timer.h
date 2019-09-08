@@ -12,6 +12,7 @@ void InitTim2Cap(u16 arr,u16 psc);
 void InitTim3Cap(u16 arr,u16 psc);
 
 void GetVal(void);
+void GetVal2(void);
 void GetTouchRef(void);
 
 
