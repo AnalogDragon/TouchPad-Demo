@@ -28,18 +28,21 @@ struct DispData_REG{
 };
 
 struct TouchValue_REG{
+	//偏移量
 	u16 CenterRef;
 	u16 RightRef;
 	u16 DownRef;
 	u16 LeftRef;
 	u16 UpRef;
 	
+	//RC计数值
 	u16 Center;
 	u16 Right;
 	u16 Down;
 	u16 Left;
 	u16 Up;
 	
+	//比较值
 	u8 CenterKey;
 	u8 RightKey;
 	u8 DownKey;
@@ -48,6 +51,7 @@ struct TouchValue_REG{
 	u8 CycKey;
 	u8 AllKey;
 	
+	//转换完成标记
 	u8 KeySet;
 	
 	float Deg;

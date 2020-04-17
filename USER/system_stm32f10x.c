@@ -222,8 +222,8 @@ void SystemInit (void)
 	FLASH_SetLatency(FLASH_Latency_2);
 	FLASH_PrefetchBufferCmd(FLASH_PrefetchBuffer_Enable);
 
-	RCC_PLLConfig(RCC_PLLSource_HSI_Div2, RCC_PLLMul_16);
-	RCC_PLLCmd(ENABLE); 	 /*??PLL */ 
+	RCC_PLLConfig(RCC_PLLSource_HSI_Div2, RCC_PLLMul_16);//8*16/2 = 64M
+	RCC_PLLCmd(ENABLE);
 	while(RCC_GetFlagStatus(RCC_FLAG_PLLRDY) == RESET) ; 
 	RCC_SYSCLKConfig(RCC_SYSCLKSource_PLLCLK);
 	while(RCC_GetSYSCLKSource() != 0x08);

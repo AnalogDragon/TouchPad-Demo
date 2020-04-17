@@ -35,7 +35,7 @@ void LED_DAT(u32 num){
 }
 
 
-
+//595Á÷Ë®µÆ
 void LedTask(void){
 	u8 i;
 	static u8 Step = 0;

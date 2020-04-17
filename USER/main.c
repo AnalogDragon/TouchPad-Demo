@@ -24,13 +24,13 @@ int main(void){
 		
 		if(SysTime.SysTimeFLG1ms){
 			PAout(5)=1;
-			GetVal2();
+			GetVal2();			//获取计数值
 			if(TouchValue.KeySet){
 				TouchValue.KeySet = 0;
-				GetTouch();
+				GetTouch();		//转换为键值
 			}
-			TouchToDisp();
-			LedTask();
+			TouchToDisp();	//将键值转换为显示需要的变量
+			LedTask();			//Led输出
 			PAout(5)=0;
 			SysTime.SysTimeFLG1ms = 0;
 		}

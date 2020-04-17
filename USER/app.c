@@ -6,10 +6,13 @@
 #define Gate0 40	//单个按键阈值Single Key Gate Value
 #define Gate1 50
 
+//计数值转换为键值
 void GetTouch(void){
 	u16 up,dn,lt,rt;
 	u8 temp;
 	float temp0,temp1;
+	
+	/*获取按键比较值*/
 	TouchValue.CenterKey = ((TouchValue.CenterRef + Gate0) < TouchValue.Center);
 	TouchValue.RightKey = ((TouchValue.RightRef + Gate0) < TouchValue.Right);
 	TouchValue.DownKey = ((TouchValue.DownRef + Gate0) < TouchValue.Down);
@@ -22,6 +25,8 @@ void GetTouch(void){
 	TouchValue.AllKey = ((TouchValue.CenterRef + TouchValue.UpRef + TouchValue.LeftRef + TouchValue.RightRef + TouchValue.DownRef + Gate1)
 											<(TouchValue.Center + TouchValue.Right + TouchValue.Down + TouchValue.Left + TouchValue.Up));
 	
+	/*获取角度*/
+	//获取向量在第几象限
 	up=dn=lt=rt=0;
 	if(TouchValue.RightRef < TouchValue.Right)	rt = TouchValue.Right - TouchValue.RightRef;
 	if(TouchValue.DownRef < TouchValue.Down)		dn = TouchValue.Down - TouchValue.DownRef;
@@ -38,6 +43,7 @@ void GetTouch(void){
 	temp0 = (int)up-(int)dn;
 	temp1 = (int)rt-(int)lt;
 	
+	//计算向量角
 	if(temp0==0)temp0 = 0.001;
 	temp0 = temp1/temp0;
 	if(temp0<0)temp0 = -temp0;
@@ -53,6 +59,8 @@ void GetTouch(void){
 
 
 
+
+//显示角度（演示用）
 void TouchToDisp(void){
 	static u8 PressCyc = 0;
 	u8 temp;

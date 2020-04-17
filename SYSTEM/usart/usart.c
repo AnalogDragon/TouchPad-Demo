@@ -73,7 +73,7 @@ void USART1_IRQHandler(void){
 }
 
 
-
+//´®¿Ú´òÓ¡¼üÖµ
 void send_once(void){
 	u8 i = 0;
 	if(DMA_IDLE)return;
