@@ -5,7 +5,7 @@
 
 ![image](https://github.com/AnalogDragon/TouchPad-Demo/blob/master/image/PIC1.jpg)
 
-[视频演示 Video](https://www.bilibili.com/video/av66430694/ "【DEMO展示】电容式触摸的DEMO测试")
+[视频演示 Video](https://www.bilibili.com/video/av66430694/)
 
 
 
